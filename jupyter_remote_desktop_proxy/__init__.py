@@ -13,26 +13,11 @@ def setup_desktop():
     sockets_path = os.path.join(sockets_dir, 'vnc-socket')
     vncserver = which('vncserver')
 
-    if vncserver:
-        vnc_args = [
-            vncserver,
-        ]
-        socket_args = []
-    else:
-        # Use bundled tigervnc
-        vnc_args = [
-            os.path.join(HERE, 'share/tigervnc/bin/vncserver'),
-            '-rfbunixpath',
-            sockets_path,
-        ]
-        socket_args = ['--unix-target', sockets_path]
-
     vnc_command = ' '.join(
         shlex.quote(p)
         for p in (
-            vnc_args
-            + [
-                '-verbose',
+            [
+                vncserver,
                 '-xstartup',
                 os.path.join(HERE, 'share/xstartup'),
                 '-geometry',
@@ -47,14 +32,12 @@ def setup_desktop():
     return {
         'command': [
             'websockify',
-            '-v',
             '--web',
             os.path.join(HERE, 'share/web/noVNC-1.2.0'),
             '--heartbeat',
             '30',
             '5901',
         ]
-        + socket_args
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
         'port': 5901,
         'timeout': 30,

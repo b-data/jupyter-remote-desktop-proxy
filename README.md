@@ -8,7 +8,7 @@ This is based on https://github.com/ryanlovett/nbnovnc.
 
 When this extension is launched it will run a Linux desktop on the Jupyter single-user server, and proxy it to your browser using VNC via Jupyter.
 
-If a `vncserver` executable is found in `PATH` it will be used, otherwise a bundled TightVNC server is run.
+A `vncserver` executable is required for this extension.
 You can use this to install vncserver with support for other features, for example the [`Dockerfile`](./Dockerfile) in this repository installs TurboVNC for improved OpenGL support.
 
 ## Installation
