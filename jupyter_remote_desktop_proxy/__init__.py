@@ -33,7 +33,7 @@ def setup_desktop():
         'command': [
             'websockify',
             '--web',
-            os.path.join(HERE, 'share/web/noVNC-1.2.0'),
+            os.path.join(HERE, 'share/web/noVNC'),
             '--heartbeat',
             '30',
             '5901',
