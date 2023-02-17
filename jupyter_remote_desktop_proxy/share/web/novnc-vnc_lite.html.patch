@@ -1,17 +1,17 @@
-diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0/vnc_lite.html b/jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0/vnc_lite.html
-index d17ab9e..a9e3e9b 100644
---- a/jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0/vnc_lite.html
-+++ b/jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0/vnc_lite.html
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/vnc_lite.html b/jupyter_remote_desktop_proxy/share/web/noVNC/vnc_lite.html
+index e725a2d..78b2cb3 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/vnc_lite.html
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/vnc_lite.html
 @@ -3,6 +3,8 @@
  <head>
  
      <!--
-+    Modified from novnc_lite.html example in noVNC 1.2.0
++    Modified from novnc_lite.html example in noVNC 1.4.0
 +
      noVNC example: lightweight example using minimal UI and features
  
      This is a self-contained file which doesn't import WebUtil or external CSS.
-@@ -59,6 +61,36 @@
+@@ -53,6 +55,36 @@
              overflow: hidden;
          }
  
@@ -47,23 +47,21 @@ index d17ab9e..a9e3e9b 100644
 +
      </style>
  
-     <!-- Promise polyfill for IE11 -->
-@@ -144,7 +176,8 @@
+     <script type="module" crossorigin="anonymous">
+@@ -138,7 +170,7 @@
          const host = readQueryVariable('host', window.location.hostname);
          let port = readQueryVariable('port', window.location.port);
          const password = readQueryVariable('password');
 -        const path = readQueryVariable('path', 'websockify');
-+
 +        const path = readQueryVariable('path', window.location.pathname.replace(/[^/]*$/, '').substring(1) + 'websockify');
  
          // | | |         | | |
          // | | | Connect | | |
-@@ -177,13 +210,45 @@
+@@ -171,13 +203,41 @@
  
          // Set parameters that can be changed on an active connection
          rfb.viewOnly = readQueryVariable('view_only', false);
 -        rfb.scaleViewport = readQueryVariable('scale', false);
-+
 +        rfb.scaleViewport = readQueryVariable('scale', true);
 +
 +        // Clipboard
@@ -84,14 +82,12 @@ index d17ab9e..a9e3e9b 100644
 +        }
 +        document.getElementById("noVNC_clipboard_text")
 +            .addEventListener('change', clipboardSend);
-+
      </script>
  </head>
  
  <body>
      <div id="top_bar">
          <div id="status">Loading</div>
-+
 +        <!-- Clipboard -->
 +        <div id="noVNC_clipboard_area" class="noVNC_clipboard_closed">
 +            <div id="noVNC_clipboard_button"><img src="app/images/clipboard.svg" />
@@ -101,7 +97,6 @@ index d17ab9e..a9e3e9b 100644
 +                <textarea id="noVNC_clipboard_text" rows=5></textarea>
 +            </div>
 +        </div>
-+
          <div id="sendCtrlAltDelButton">Send CtrlAltDel</div>
      </div>
      <div id="screen">
