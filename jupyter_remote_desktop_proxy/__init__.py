@@ -25,7 +25,6 @@ def setup_desktop():
                 '-SecurityTypes',
                 'None',
                 '-fg',
-                ':1',
             ]
         )
     )
