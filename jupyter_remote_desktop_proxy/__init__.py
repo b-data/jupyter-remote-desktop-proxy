@@ -13,20 +13,17 @@ def setup_desktop():
     sockets_path = os.path.join(sockets_dir, 'vnc-socket')
     vncserver = which('vncserver')
 
-    vnc_command = ' '.join(
-        shlex.quote(p)
-        for p in (
-            [
-                vncserver,
-                '-xstartup',
-                os.path.join(HERE, 'share/xstartup'),
-                '-geometry',
-                '1680x1050',
-                '-SecurityTypes',
-                'None',
-                '-fg',
-            ]
-        )
+    vnc_command = shlex.join(
+        [
+            vncserver,
+            '-xstartup',
+            os.path.join(HERE, 'share/xstartup'),
+            '-geometry',
+            '1680x1050',
+            '-SecurityTypes',
+            'None',
+            '-fg',
+        ]
     )
     return {
         'command': [
