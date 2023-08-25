@@ -13,9 +13,24 @@ def setup_desktop():
     sockets_path = os.path.join(sockets_dir, 'vnc-socket')
     vncserver = which('vncserver')
 
+    # TigerVNC provides the option to connect a Unix socket. TurboVNC does not.
+    # TurboVNC and TigerVNC share the same origin and both use a Perl script
+    # as the executable vncserver. We can determine if vncserver is TigerVNC
+    # by searching TigerVNC string in the Perl script.
+    with open(vncserver) as vncserver_file:
+        is_tigervnc = "TigerVNC" in vncserver_file.read()
+
+    if is_tigervnc:
+        vnc_args = [vncserver, '-rfbunixpath', sockets_path]
+        socket_args = ['--unix-target', sockets_path]
+    else:
+        vnc_args = [vncserver]
+        socket_args = []
+
     vnc_command = shlex.join(
-        [
-            vncserver,
+        vnc_args
+        + [
+            '-verbose',
             '-xstartup',
             os.path.join(HERE, 'share/xstartup'),
             '-geometry',
@@ -34,6 +49,7 @@ def setup_desktop():
             '30',
             '{port}',
         ]
+        + socket_args
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
         'timeout': 30,
         'mappath': {'/': '/vnc_lite.html'},
