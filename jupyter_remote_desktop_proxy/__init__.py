@@ -32,10 +32,9 @@ def setup_desktop():
             os.path.join(HERE, 'share/web/noVNC'),
             '--heartbeat',
             '30',
-            '5901',
+            '{port}',
         ]
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
-        'port': 5901,
         'timeout': 30,
         'mappath': {'/': '/vnc_lite.html'},
         "launcher_entry": {
