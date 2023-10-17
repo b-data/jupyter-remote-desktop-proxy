@@ -21,7 +21,6 @@ def setup_desktop():
     vnc_command = shlex.join(
         vnc_args
         + [
-            vncserver,
             '-geometry',
             '1680x1050',
             '-SecurityTypes',
