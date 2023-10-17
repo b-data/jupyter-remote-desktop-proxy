@@ -1,6 +1,9 @@
 # Jupyter Remote Desktop Proxy
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/jupyterhub/jupyter-remote-desktop-proxy/HEAD?urlpath=desktop)
+[![Latest PyPI version](https://img.shields.io/pypi/v/jupyter-remote-desktop-proxy?logo=pypi)](https://pypi.python.org/pypi/jupyter-remote-desktop-proxy)
+[![Issue tracking - GitHub](https://img.shields.io/badge/issue_tracking-github-blue?logo=github)](https://github.com/jupyterhub/jupyter-remote-desktop-proxy/issues)
+[![Help forum - Discourse](https://img.shields.io/badge/help_forum-discourse-blue?logo=discourse)](https://discourse.jupyter.org/c/jupyterhub)
 
 Run XFCE (or other desktop environments) on Jupyter.
 
@@ -53,7 +56,7 @@ $ docker build -t $(whoami)/$(basename ${PWD}) .
 Now you can ran the image:
 
 ```bash
-$ docker run --rm  -p 8888:8888 $(whoami)/$(basename ${PWD})
+$ docker run --rm --security-opt seccomp=unconfined -p 8888:8888 $(whoami)/$(basename ${PWD})
 Executing the command: jupyter notebook
 [I 12:43:59.148 NotebookApp] Writing notebook server cookie secret to /home/jovyan/.local/share/jupyter/runtime/notebook_cookie_secret
 [I 12:44:00.221 NotebookApp] JupyterLab extension loaded from /opt/conda/lib/python3.7/site-packages/jupyterlab
@@ -74,6 +77,11 @@ Executing the command: jupyter notebook
 ```
 
 Now head to the URL shown and you will be greated with a XFCE desktop.
+
+Note the `--security-opt seccomp=unconfined` parameter - this is necessary
+to start daemons (such as dbus, pulseaudio, etc) necessary for linux desktop
+to work. This is the option kubernetes runs with by default, so most kubernetes
+based JupyterHubs will not need any modifications for this to work.
 
 ## Limitations
 
