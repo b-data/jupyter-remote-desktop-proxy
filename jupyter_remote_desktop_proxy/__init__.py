@@ -32,7 +32,7 @@ def setup_desktop():
             os.path.join(HERE, 'share/web/noVNC-1.2.0'),
             '--heartbeat',
             '30',
-            '5901',
+            'localhost:5901',
         ]
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
         'port': 5901,
