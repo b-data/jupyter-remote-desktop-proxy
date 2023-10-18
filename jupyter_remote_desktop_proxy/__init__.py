@@ -37,6 +37,6 @@ def setup_desktop():
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
         'port': 5901,
         'timeout': 30,
-        'mappath': {'/': '/vnc_lite.html'},
+        'mappath': {'/': '/vnc.html'},
         'new_browser_window': True,
     }
