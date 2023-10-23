@@ -30,8 +30,8 @@ BSD 3-Clause License:
   OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 --------------------------------------------------------------------------------
-jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0
+jupyter_remote_desktop_proxy/share/web/noVNC
 noVNC is Copyright (C) 2022 The noVNC Authors
 
-See jupyter_remote_desktop_proxy/share/web/noVNC-1.2.0/LICENSE.txt for license
+See jupyter_remote_desktop_proxy/share/web/noVNC/LICENSE.txt for license
 information.
