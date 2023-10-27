@@ -32,15 +32,11 @@ def setup_desktop():
             os.path.join(HERE, 'share/web/noVNC'),
             '--heartbeat',
             '30',
-            '5901',
+            'localhost:5901',
         ]
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
         'port': 5901,
         'timeout': 30,
-        'mappath': {'/': '/vnc_lite.html'},
-        "launcher_entry": {
-            "title": "QGIS Desktop",
-            "icon_path": "/usr/local/share/icons/hicolor/scalable/apps/qgis.svg"
-        },
+        'mappath': {'/': '/vnc.html'},
         'new_browser_window': True,
     }
