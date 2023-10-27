@@ -38,5 +38,9 @@ def setup_desktop():
         'port': 5901,
         'timeout': 30,
         'mappath': {'/': '/vnc.html'},
+        "launcher_entry": {
+            "title": "QGIS Desktop",
+            "icon_path": "/usr/local/share/icons/hicolor/scalable/apps/qgis.svg"
+        },
         'new_browser_window': True,
     }
