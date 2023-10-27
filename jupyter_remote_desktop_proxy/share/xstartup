@@ -1,3 +1,12 @@
 #!/bin/sh
-cd "$HOME"
-exec startxfce4
+
+if [ -n "$(nvidia-smi --query-gpu=uuid --format=csv | sed -n 2p)" ]; then
+  if [ "$(command -v vglrun)" ]; then
+    export VGL_DISPLAY="${VGL_DISPLAY:-egl}"
+    exec vglrun +wm startxfce4
+  else
+    exec startxfce4
+  fi
+else
+  exec startxfce4
+fi
