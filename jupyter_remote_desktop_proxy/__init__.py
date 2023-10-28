@@ -17,7 +17,7 @@ def setup_desktop():
         vnc_args
         + [
             '-geometry',
-            '1680x1050',
+            '1920x1080',
             '-SecurityTypes',
             'None',
             '-fg',
