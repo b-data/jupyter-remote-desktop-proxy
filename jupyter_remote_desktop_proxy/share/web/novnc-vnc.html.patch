@@ -1,17 +1,5 @@
-diff --git a/jupyter_remote_desktop_proxy/__init__.py b/jupyter_remote_desktop_proxy/__init__.py
-index b94726d..22fbd5b 100644
---- a/jupyter_remote_desktop_proxy/__init__.py
-+++ b/jupyter_remote_desktop_proxy/__init__.py
-@@ -37,6 +37,6 @@ def setup_desktop():
-         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
-         'port': 5901,
-         'timeout': 30,
--        'mappath': {'/': '/vnc_lite.html'},
-+        'mappath': {'/': '/vnc.html'},
-         'new_browser_window': True,
-     }
 diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css b/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
-index 06e736a..f2729c7 100644
+index f83ad4b..fde5d2d 100644
 --- a/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
 +++ b/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
 @@ -3,6 +3,9 @@
@@ -34,7 +22,7 @@ index 06e736a..f2729c7 100644
  }
  
 diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js b/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
-index c1f6776..fc5f566 100644
+index f27dfe2..f63386b 100644
 --- a/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
 +++ b/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
 @@ -4,6 +4,9 @@
