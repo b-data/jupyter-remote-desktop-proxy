@@ -9,26 +9,23 @@ import FakeWebSocket from './fake.websocket.js';
 
 function testDecodeRect(decoder, x, y, width, height, data, display, depth) {
     let sock;
-    let done = false;
 
     sock = new Websock;
     sock.open("ws://example.com");
 
     sock.on('message', () => {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     });
 
     // Empty messages are filtered at multiple layers, so we need to
     // do a direct call
     if (data.length === 0) {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     } else {
         sock._websocket._receiveData(new Uint8Array(data));
     }
 
     display.flip();
-
-    return done;
 }
 
 function push32(arr, num) {
@@ -65,7 +62,7 @@ describe('Hextile Decoder', function () {
         data.push(2 | (2 << 4)); // x: 2, y: 2
         data.push(1 | (1 << 4)); // width: 2, height: 2
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -74,7 +71,6 @@ describe('Hextile Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -96,9 +92,8 @@ describe('Hextile Decoder', function () {
             data.push(0);
         }
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -107,14 +102,13 @@ describe('Hextile Decoder', function () {
         data.push(0x02);
         push32(data, 0x00ff0000); // becomes 00ff0000 --> #00FF00 bg color
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let expected = [];
         for (let i = 0; i < 16; i++) {
             push32(expected, 0x00ff00ff);
         }
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(new Uint8Array(expected));
     });
 
@@ -131,7 +125,7 @@ describe('Hextile Decoder', function () {
         // send an empty frame
         data.push(0x00);
 
-        let done = testDecodeRect(decoder, 0, 0, 32, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 32, 4, data, display, 24);
 
         let expected = [];
         for (let i = 0; i < 16; i++) {
@@ -141,7 +135,6 @@ describe('Hextile Decoder', function () {
             push32(expected, 0x00ff00ff);    // rect 2: same bkground color
         }
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(new Uint8Array(expected));
     });
 
@@ -163,7 +156,7 @@ describe('Hextile Decoder', function () {
         data.push(2 | (2 << 4)); // x: 2, y: 2
         data.push(1 | (1 << 4)); // width: 2, height: 2
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -172,7 +165,6 @@ describe('Hextile Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -198,7 +190,7 @@ describe('Hextile Decoder', function () {
         data.push(0); // x: 0, y: 0
         data.push(1 | (1 << 4)); // width: 2, height: 2
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 17, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 17, data, display, 24);
 
         let targetData = [
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -213,7 +205,6 @@ describe('Hextile Decoder', function () {
         }
         expected = expected.concat(targetData.slice(0, 16));
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(new Uint8Array(expected));
     });
 
@@ -227,7 +218,7 @@ describe('Hextile Decoder', function () {
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
         display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done = testDecodeRect(decoder, 1, 2, 0, 0, [], display, 24);
+        testDecodeRect(decoder, 1, 2, 0, 0, [], display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -236,7 +227,6 @@ describe('Hextile Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 });

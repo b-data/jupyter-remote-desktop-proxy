@@ -9,26 +9,23 @@ import FakeWebSocket from './fake.websocket.js';
 
 function testDecodeRect(decoder, x, y, width, height, data, display, depth) {
     let sock;
-    let done = false;
 
     sock = new Websock;
     sock.open("ws://example.com");
 
     sock.on('message', () => {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     });
 
     // Empty messages are filtered at multiple layers, so we need to
     // do a direct call
     if (data.length === 0) {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     } else {
         sock._websocket._receiveData(new Uint8Array(data));
     }
 
     display.flip();
-
-    return done;
 }
 
 describe('CopyRect Decoder', function () {
@@ -50,15 +47,12 @@ describe('CopyRect Decoder', function () {
         display.fillRect(0, 0, 2, 2, [ 0x00, 0x00, 0xff ]);
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done;
-        done = testDecodeRect(decoder, 0, 2, 2, 2,
-                              [0x00, 0x02, 0x00, 0x00],
-                              display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 2, 2, 2,
-                              [0x00, 0x00, 0x00, 0x00],
-                              display, 24);
-        expect(done).to.be.true;
+        testDecodeRect(decoder, 0, 2, 2, 2,
+                       [0x00, 0x02, 0x00, 0x00],
+                       display, 24);
+        testDecodeRect(decoder, 2, 2, 2, 2,
+                       [0x00, 0x00, 0x00, 0x00],
+                       display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -75,9 +69,7 @@ describe('CopyRect Decoder', function () {
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
         display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done = testDecodeRect(decoder, 1, 2, 0, 0,
-                                  [0x00, 0x00, 0x00, 0x00],
-                                  display, 24);
+        testDecodeRect(decoder, 1, 2, 0, 0, [0x00, 0x00, 0x00, 0x00], display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -86,7 +78,6 @@ describe('CopyRect Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 });

@@ -7,15 +7,12 @@
  */
 
 /*
- * Performs MD5 hashing on an array of bytes, returns an array of bytes
+ * Performs MD5 hashing on a string of binary characters, returns an array of bytes
  */
 
-export async function MD5(d) {
-    let s = "";
-    for (let i = 0; i < d.length; i++) {
-        s += String.fromCharCode(d[i]);
-    }
-    return M(V(Y(X(s), 8 * s.length)));
+export function MD5(d) {
+    let r = M(V(Y(X(d), 8 * d.length)));
+    return r;
 }
 
 function M(d) {

@@ -9,26 +9,23 @@ import FakeWebSocket from './fake.websocket.js';
 
 function testDecodeRect(decoder, x, y, width, height, data, display, depth) {
     let sock;
-    let done = false;
 
     sock = new Websock;
     sock.open("ws://example.com");
 
     sock.on('message', () => {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     });
 
     // Empty messages are filtered at multiple layers, so we need to
     // do a direct call
     if (data.length === 0) {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     } else {
         sock._websocket._receiveData(new Uint8Array(data));
     }
 
     display.flip();
-
-    return done;
 }
 
 describe('TightPng Decoder', function () {
@@ -44,7 +41,7 @@ describe('TightPng Decoder', function () {
         display.resize(4, 4);
     });
 
-    it('should handle the TightPng encoding', async function () {
+    it('should handle the TightPng encoding', function (done) {
         let data = [
             // Control bytes
             0xa0, 0xb4, 0x04,
@@ -122,8 +119,7 @@ describe('TightPng Decoder', function () {
             0xae, 0x42, 0x60, 0x82,
         ];
 
-        let decodeDone = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
-        expect(decodeDone).to.be.true;
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0xff, 0x00, 0x00, 255, 0xff, 0x00, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -139,7 +135,10 @@ describe('TightPng Decoder', function () {
             return diff < 30;
         }
 
-        await display.flush();
-        expect(display).to.have.displayed(targetData, almost);
+        display.onflush = () => {
+            expect(display).to.have.displayed(targetData, almost);
+            done();
+        };
+        display.flush();
     });
 });

@@ -9,26 +9,23 @@ import FakeWebSocket from './fake.websocket.js';
 
 function testDecodeRect(decoder, x, y, width, height, data, display, depth) {
     let sock;
-    let done = false;
 
     sock = new Websock;
     sock.open("ws://example.com");
 
     sock.on('message', () => {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     });
 
     // Empty messages are filtered at multiple layers, so we need to
     // do a direct call
     if (data.length === 0) {
-        done = decoder.decodeRect(x, y, width, height, sock, display, depth);
+        decoder.decodeRect(x, y, width, height, sock, display, depth);
     } else {
         sock._websocket._receiveData(new Uint8Array(data));
     }
 
     display.flip();
-
-    return done;
 }
 
 describe('Tight Decoder', function () {
@@ -45,9 +42,9 @@ describe('Tight Decoder', function () {
     });
 
     it('should handle fill rects', function () {
-        let done = testDecodeRect(decoder, 0, 0, 4, 4,
-                                  [0x80, 0xff, 0x88, 0x44],
-                                  display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4,
+                       [0x80, 0xff, 0x88, 0x44],
+                       display, 24);
 
         let targetData = new Uint8Array([
             0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255,
@@ -56,31 +53,21 @@ describe('Tight Decoder', function () {
             0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255, 0xff, 0x88, 0x44, 255,
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
     it('should handle uncompressed copy rects', function () {
-        let done;
         let blueData = [ 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0xff ];
         let greenData = [ 0x00, 0x00, 0xff, 0x00, 0x00, 0xff, 0x00 ];
 
-        done = testDecodeRect(decoder, 0, 0, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 1, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 0, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 1, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 2, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 3, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 2, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 3, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
+        testDecodeRect(decoder, 0, 0, 2, 1, blueData, display, 24);
+        testDecodeRect(decoder, 0, 1, 2, 1, blueData, display, 24);
+        testDecodeRect(decoder, 2, 0, 2, 1, greenData, display, 24);
+        testDecodeRect(decoder, 2, 1, 2, 1, greenData, display, 24);
+        testDecodeRect(decoder, 0, 2, 2, 1, greenData, display, 24);
+        testDecodeRect(decoder, 0, 3, 2, 1, greenData, display, 24);
+        testDecodeRect(decoder, 2, 2, 2, 1, blueData, display, 24);
+        testDecodeRect(decoder, 2, 3, 2, 1, blueData, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -102,7 +89,7 @@ describe('Tight Decoder', function () {
             0x60, 0x82, 0x01, 0x99, 0x8d, 0x29, 0x02, 0xa6,
             0x00, 0x7e, 0xbf, 0x0f, 0xf1 ];
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -111,7 +98,6 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -124,7 +110,7 @@ describe('Tight Decoder', function () {
             // Pixels
             0x30, 0x30, 0xc0, 0xc0 ];
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -133,7 +119,6 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -150,7 +135,7 @@ describe('Tight Decoder', function () {
             0x78, 0x9c, 0x33, 0x30, 0x38, 0x70, 0xc0, 0x00,
             0x8a, 0x01, 0x21, 0x3c, 0x05, 0xa1 ];
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 12, data, display, 24);
+        testDecodeRect(decoder, 0, 0, 4, 12, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -167,12 +152,10 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
     it('should handle uncompressed palette rects', function () {
-        let done;
         let data1 = [
             // Control bytes
             0x40, 0x01,
@@ -188,10 +171,8 @@ describe('Tight Decoder', function () {
             // Pixels
             0x01, 0x01, 0x00, 0x00, 0x01, 0x01, 0x00, 0x00 ];
 
-        done = testDecodeRect(decoder, 0, 0, 4, 2, data1, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 2, 4, 2, data2, display, 24);
-        expect(done).to.be.true;
+        testDecodeRect(decoder, 0, 0, 4, 2, data1, display, 24);
+        testDecodeRect(decoder, 0, 2, 4, 2, data2, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -215,40 +196,7 @@ describe('Tight Decoder', function () {
             0x62, 0x08, 0xc9, 0xc0, 0x00, 0x00, 0x00, 0x54,
             0x00, 0x09 ];
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
-
-        let targetData = new Uint8Array([
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
-        ]);
-
-        expect(done).to.be.true;
-        expect(display).to.have.displayed(targetData);
-    });
-
-    it('should handle uncompressed gradient rects', function () {
-        let done;
-        let blueData = [ 0x40, 0x02, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00 ];
-        let greenData = [ 0x40, 0x02, 0x00, 0xff, 0x00, 0x00, 0x00, 0x00 ];
-
-        done = testDecodeRect(decoder, 0, 0, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 1, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 0, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 1, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 2, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 0, 3, 2, 1, greenData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 2, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
-        done = testDecodeRect(decoder, 2, 3, 2, 1, blueData, display, 24);
-        expect(done).to.be.true;
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -260,27 +208,12 @@ describe('Tight Decoder', function () {
         expect(display).to.have.displayed(targetData);
     });
 
-    it('should handle compressed gradient rects', function () {
-        let data = [
-            // Control byte
-            0x40, 0x02,
-            // Pixels (compressed)
-            0x18,
-            0x78, 0x9c, 0x62, 0x60, 0xf8, 0xcf, 0x00, 0x04,
-            0xff, 0x19, 0x19, 0xd0, 0x00, 0x44, 0x84, 0xf1,
-            0x3f, 0x9a, 0x30, 0x00, 0x00, 0x00, 0xff, 0xff ];
+    it.skip('should handle uncompressed gradient rects', function () {
+        // Not implemented yet
+    });
 
-        let done = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
-
-        let targetData = new Uint8Array([
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
-        ]);
-
-        expect(done).to.be.true;
-        expect(display).to.have.displayed(targetData);
+    it.skip('should handle compressed gradient rects', function () {
+        // Not implemented yet
     });
 
     it('should handle empty copy rects', function () {
@@ -288,7 +221,7 @@ describe('Tight Decoder', function () {
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
         display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done = testDecodeRect(decoder, 1, 2, 0, 0, [ 0x00 ], display, 24);
+        testDecodeRect(decoder, 1, 2, 0, 0, [ 0x00 ], display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -297,7 +230,6 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -306,10 +238,10 @@ describe('Tight Decoder', function () {
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
         display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done = testDecodeRect(decoder, 1, 2, 0, 0,
-                                  [ 0x40, 0x01, 0x01,
-                                    0xff, 0xff, 0xff,
-                                    0xff, 0xff, 0xff ], display, 24);
+        testDecodeRect(decoder, 1, 2, 0, 0,
+                       [ 0x40, 0x01, 0x01,
+                         0xff, 0xff, 0xff,
+                         0xff, 0xff, 0xff ], display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -318,26 +250,6 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
-        expect(display).to.have.displayed(targetData);
-    });
-
-    it('should handle empty gradient rects', function () {
-        display.fillRect(0, 0, 4, 4, [ 0x00, 0x00, 0xff ]);
-        display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
-        display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
-
-        let done = testDecodeRect(decoder, 1, 2, 0, 0,
-                                  [ 0x40, 0x02 ], display, 24);
-
-        let targetData = new Uint8Array([
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255,
-            0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
-        ]);
-
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
@@ -346,9 +258,8 @@ describe('Tight Decoder', function () {
         display.fillRect(2, 0, 2, 2, [ 0x00, 0xff, 0x00 ]);
         display.fillRect(0, 2, 2, 2, [ 0x00, 0xff, 0x00 ]);
 
-        let done = testDecodeRect(decoder, 1, 2, 0, 0,
-                                  [ 0x80, 0xff, 0xff, 0xff ],
-                                  display, 24);
+        testDecodeRect(decoder, 1, 2, 0, 0,
+                       [ 0x80, 0xff, 0xff, 0xff ], display, 24);
 
         let targetData = new Uint8Array([
             0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -357,11 +268,10 @@ describe('Tight Decoder', function () {
             0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0x00, 0xff, 255, 0x00, 0x00, 0xff, 255
         ]);
 
-        expect(done).to.be.true;
         expect(display).to.have.displayed(targetData);
     });
 
-    it('should handle JPEG rects', async function () {
+    it('should handle JPEG rects', function (done) {
         let data = [
             // Control bytes
             0x90, 0xd6, 0x05,
@@ -459,8 +369,7 @@ describe('Tight Decoder', function () {
             0x3f, 0xeb, 0xff, 0x00, 0xff, 0xd9,
         ];
 
-        let decodeDone = testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
-        expect(decodeDone).to.be.true;
+        testDecodeRect(decoder, 0, 0, 4, 4, data, display, 24);
 
         let targetData = new Uint8Array([
             0xff, 0x00, 0x00, 255, 0xff, 0x00, 0x00, 255, 0x00, 0xff, 0x00, 255, 0x00, 0xff, 0x00, 255,
@@ -476,7 +385,10 @@ describe('Tight Decoder', function () {
             return diff < 5;
         }
 
-        await display.flush();
-        expect(display).to.have.displayed(targetData, almost);
+        display.onflush = () => {
+            expect(display).to.have.displayed(targetData, almost);
+            done();
+        };
+        display.flush();
     });
 });
