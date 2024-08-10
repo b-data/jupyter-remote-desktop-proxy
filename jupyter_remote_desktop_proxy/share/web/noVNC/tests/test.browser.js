@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 const expect = chai.expect;
 
 import { isMac, isWindows, isIOS, isAndroid, isChromeOS,
