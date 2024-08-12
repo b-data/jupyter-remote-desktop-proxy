@@ -1,0 +1,489 @@
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css b/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
+index f83ad4b..fde5d2d 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/app/styles/base.css
+@@ -3,6 +3,9 @@
+  * Copyright (C) 2019 The noVNC Authors
+  * noVNC is licensed under the MPL 2.0 (see LICENSE.txt)
+  * This file is licensed under the 2-Clause BSD license (see LICENSE.txt).
++ *
++ * Modified by b-data for seamless use with Jupyter Remote Desktop Proxy.
++ *
+  */
+ 
+ /*
+@@ -630,7 +633,7 @@ html {
+ }
+ 
+ /* Connection Controls */
+-:root:not(.noVNC_connected) #noVNC_disconnect_button {
++:root #noVNC_disconnect_button {
+   display: none;
+ }
+ 
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js b/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
+index f27dfe2..f63386b 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/app/ui.js
+@@ -4,6 +4,9 @@
+  * Licensed under MPL 2.0 (see LICENSE.txt)
+  *
+  * See README.md for usage and integration instructions.
++ * 
++ * Modified by b-data for seamless use with Jupyter Remote Desktop Proxy.
++ * 
+  */
+ 
+ import * as Log from '../core/util/logging.js';
+@@ -120,7 +123,7 @@ const UI = {
+ 
+         document.documentElement.classList.remove("noVNC_loading");
+ 
+-        let autoconnect = WebUtil.getConfigVar('autoconnect', false);
++        let autoconnect = WebUtil.getConfigVar('autoconnect', true);
+         if (autoconnect === 'true' || autoconnect == '1') {
+             autoconnect = true;
+             UI.connect();
+@@ -174,15 +177,15 @@ const UI = {
+         UI.initSetting('port', port);
+         UI.initSetting('encrypt', (window.location.protocol === "https:"));
+         UI.initSetting('view_clip', false);
+-        UI.initSetting('resize', 'off');
++        UI.initSetting('resize', 'scale');
+         UI.initSetting('quality', 6);
+         UI.initSetting('compression', 2);
+         UI.initSetting('shared', true);
+         UI.initSetting('view_only', false);
+         UI.initSetting('show_dot', false);
+-        UI.initSetting('path', 'websockify');
++        UI.initSetting('path', window.location.pathname.replace(/[^/]*$/, '').substring(1) + 'websockify');
+         UI.initSetting('repeaterID', '');
+-        UI.initSetting('reconnect', false);
++        UI.initSetting('reconnect', true);
+         UI.initSetting('reconnect_delay', 5000);
+ 
+         UI.setupSettingLabels();
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/core/encodings.js b/jupyter_remote_desktop_proxy/share/web/noVNC/core/encodings.js
+index 1a79989..2041b6e 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/core/encodings.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/core/encodings.js
+@@ -22,7 +22,6 @@ export const encodings = {
+     pseudoEncodingLastRect: -224,
+     pseudoEncodingCursor: -239,
+     pseudoEncodingQEMUExtendedKeyEvent: -258,
+-    pseudoEncodingQEMULedEvent: -261,
+     pseudoEncodingDesktopName: -307,
+     pseudoEncodingExtendedDesktopSize: -308,
+     pseudoEncodingXvp: -309,
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/core/input/keyboard.js b/jupyter_remote_desktop_proxy/share/web/noVNC/core/input/keyboard.js
+index 68da231..ddb5ce0 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/core/input/keyboard.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/core/input/keyboard.js
+@@ -36,7 +36,7 @@ export default class Keyboard {
+ 
+     // ===== PRIVATE METHODS =====
+ 
+-    _sendKeyEvent(keysym, code, down, numlock = null, capslock = null) {
++    _sendKeyEvent(keysym, code, down) {
+         if (down) {
+             this._keyDownList[code] = keysym;
+         } else {
+@@ -48,9 +48,8 @@ export default class Keyboard {
+         }
+ 
+         Log.Debug("onkeyevent " + (down ? "down" : "up") +
+-                  ", keysym: " + keysym, ", code: " + code +
+-                  ", numlock: " + numlock + ", capslock: " + capslock);
+-        this.onkeyevent(keysym, code, down, numlock, capslock);
++                  ", keysym: " + keysym, ", code: " + code);
++        this.onkeyevent(keysym, code, down);
+     }
+ 
+     _getKeyCode(e) {
+@@ -87,14 +86,6 @@ export default class Keyboard {
+     _handleKeyDown(e) {
+         const code = this._getKeyCode(e);
+         let keysym = KeyboardUtil.getKeysym(e);
+-        let numlock = e.getModifierState('NumLock');
+-        let capslock = e.getModifierState('CapsLock');
+-
+-        // getModifierState for NumLock is not supported on mac and ios and always returns false.
+-        // Set to null to indicate unknown/unsupported instead.
+-        if (browser.isMac() || browser.isIOS()) {
+-            numlock = null;
+-        }
+ 
+         // Windows doesn't have a proper AltGr, but handles it using
+         // fake Ctrl+Alt. However the remote end might not be Windows,
+@@ -116,7 +107,7 @@ export default class Keyboard {
+                 //        key to "AltGraph".
+                 keysym = KeyTable.XK_ISO_Level3_Shift;
+             } else {
+-                this._sendKeyEvent(KeyTable.XK_Control_L, "ControlLeft", true, numlock, capslock);
++                this._sendKeyEvent(KeyTable.XK_Control_L, "ControlLeft", true);
+             }
+         }
+ 
+@@ -127,8 +118,8 @@ export default class Keyboard {
+                 // If it's a virtual keyboard then it should be
+                 // sufficient to just send press and release right
+                 // after each other
+-                this._sendKeyEvent(keysym, code, true, numlock, capslock);
+-                this._sendKeyEvent(keysym, code, false, numlock, capslock);
++                this._sendKeyEvent(keysym, code, true);
++                this._sendKeyEvent(keysym, code, false);
+             }
+ 
+             stopEvent(e);
+@@ -166,8 +157,8 @@ export default class Keyboard {
+         // while meta is held down
+         if ((browser.isMac() || browser.isIOS()) &&
+             (e.metaKey && code !== 'MetaLeft' && code !== 'MetaRight')) {
+-            this._sendKeyEvent(keysym, code, true, numlock, capslock);
+-            this._sendKeyEvent(keysym, code, false, numlock, capslock);
++            this._sendKeyEvent(keysym, code, true);
++            this._sendKeyEvent(keysym, code, false);
+             stopEvent(e);
+             return;
+         }
+@@ -177,8 +168,8 @@ export default class Keyboard {
+         // which toggles on each press, but not on release. So pretend
+         // it was a quick press and release of the button.
+         if ((browser.isMac() || browser.isIOS()) && (code === 'CapsLock')) {
+-            this._sendKeyEvent(KeyTable.XK_Caps_Lock, 'CapsLock', true, numlock, capslock);
+-            this._sendKeyEvent(KeyTable.XK_Caps_Lock, 'CapsLock', false, numlock, capslock);
++            this._sendKeyEvent(KeyTable.XK_Caps_Lock, 'CapsLock', true);
++            this._sendKeyEvent(KeyTable.XK_Caps_Lock, 'CapsLock', false);
+             stopEvent(e);
+             return;
+         }
+@@ -191,8 +182,8 @@ export default class Keyboard {
+                             KeyTable.XK_Hiragana,
+                             KeyTable.XK_Romaji ];
+         if (browser.isWindows() && jpBadKeys.includes(keysym)) {
+-            this._sendKeyEvent(keysym, code, true, numlock, capslock);
+-            this._sendKeyEvent(keysym, code, false, numlock, capslock);
++            this._sendKeyEvent(keysym, code, true);
++            this._sendKeyEvent(keysym, code, false);
+             stopEvent(e);
+             return;
+         }
+@@ -208,7 +199,7 @@ export default class Keyboard {
+             return;
+         }
+ 
+-        this._sendKeyEvent(keysym, code, true, numlock, capslock);
++        this._sendKeyEvent(keysym, code, true);
+     }
+ 
+     _handleKeyUp(e) {
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/core/rfb.js b/jupyter_remote_desktop_proxy/share/web/noVNC/core/rfb.js
+index f2deb0e..0349f04 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/core/rfb.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/core/rfb.js
+@@ -260,8 +260,6 @@ export default class RFB extends EventTargetMixin {
+ 
+         this._keyboard = new Keyboard(this._canvas);
+         this._keyboard.onkeyevent = this._handleKeyEvent.bind(this);
+-        this._remoteCapsLock = null; // Null indicates unknown or irrelevant
+-        this._remoteNumLock = null;
+ 
+         this._gestures = new GestureHandler();
+ 
+@@ -995,35 +993,7 @@ export default class RFB extends EventTargetMixin {
+         }
+     }
+ 
+-    _handleKeyEvent(keysym, code, down, numlock, capslock) {
+-        // If remote state of capslock is known, and it doesn't match the local led state of
+-        // the keyboard, we send a capslock keypress first to bring it into sync.
+-        // If we just pressed CapsLock, or we toggled it remotely due to it being out of sync
+-        // we clear the remote state so that we don't send duplicate or spurious fixes,
+-        // since it may take some time to receive the new remote CapsLock state.
+-        if (code == 'CapsLock' && down) {
+-            this._remoteCapsLock = null;
+-        }
+-        if (this._remoteCapsLock !== null && capslock !== null && this._remoteCapsLock !== capslock && down) {
+-            Log.Debug("Fixing remote caps lock");
+-
+-            this.sendKey(KeyTable.XK_Caps_Lock, 'CapsLock', true);
+-            this.sendKey(KeyTable.XK_Caps_Lock, 'CapsLock', false);
+-            // We clear the remote capsLock state when we do this to prevent issues with doing this twice
+-            // before we receive an update of the the remote state.
+-            this._remoteCapsLock = null;
+-        }
+-
+-        // Logic for numlock is exactly the same.
+-        if (code == 'NumLock' && down) {
+-            this._remoteNumLock = null;
+-        }
+-        if (this._remoteNumLock !== null && numlock !== null && this._remoteNumLock !== numlock && down) {
+-            Log.Debug("Fixing remote num lock");
+-            this.sendKey(KeyTable.XK_Num_Lock, 'NumLock', true);
+-            this.sendKey(KeyTable.XK_Num_Lock, 'NumLock', false);
+-            this._remoteNumLock = null;
+-        }
++    _handleKeyEvent(keysym, code, down) {
+         this.sendKey(keysym, code, down);
+     }
+ 
+@@ -2131,7 +2101,6 @@ export default class RFB extends EventTargetMixin {
+         encs.push(encodings.pseudoEncodingDesktopSize);
+         encs.push(encodings.pseudoEncodingLastRect);
+         encs.push(encodings.pseudoEncodingQEMUExtendedKeyEvent);
+-        encs.push(encodings.pseudoEncodingQEMULedEvent);
+         encs.push(encodings.pseudoEncodingExtendedDesktopSize);
+         encs.push(encodings.pseudoEncodingXvp);
+         encs.push(encodings.pseudoEncodingFence);
+@@ -2567,9 +2536,6 @@ export default class RFB extends EventTargetMixin {
+             case encodings.pseudoEncodingExtendedDesktopSize:
+                 return this._handleExtendedDesktopSize();
+ 
+-            case encodings.pseudoEncodingQEMULedEvent:
+-                return this._handleLedEvent();
+-
+             default:
+                 return this._handleDataRect();
+         }
+@@ -2747,21 +2713,6 @@ export default class RFB extends EventTargetMixin {
+         return true;
+     }
+ 
+-    _handleLedEvent() {
+-        if (this._sock.rQwait("LED Status", 1)) {
+-            return false;
+-        }
+-
+-        let data = this._sock.rQshift8();
+-        // ScrollLock state can be retrieved with data & 1. This is currently not needed.
+-        let numLock = data & 2 ? true : false;
+-        let capsLock = data & 4 ? true : false;
+-        this._remoteCapsLock = capsLock;
+-        this._remoteNumLock = numLock;
+-
+-        return true;
+-    }
+-
+     _handleExtendedDesktopSize() {
+         if (this._sock.rQwait("ExtendedDesktopSize", 4)) {
+             return false;
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.keyboard.js b/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.keyboard.js
+index efc84c3..0d8cac6 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.keyboard.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.keyboard.js
+@@ -14,10 +14,6 @@ describe('Key Event Handling', function () {
+         }
+         e.stopPropagation = sinon.spy();
+         e.preventDefault = sinon.spy();
+-        e.getModifierState = function (key) {
+-            return e[key];
+-        };
+-
+         return e;
+     }
+ 
+@@ -314,50 +310,6 @@ describe('Key Event Handling', function () {
+         });
+     });
+ 
+-    describe('Modifier status info', function () {
+-        let origNavigator;
+-        beforeEach(function () {
+-            // window.navigator is a protected read-only property in many
+-            // environments, so we need to redefine it whilst running these
+-            // tests.
+-            origNavigator = Object.getOwnPropertyDescriptor(window, "navigator");
+-
+-            Object.defineProperty(window, "navigator", {value: {}});
+-        });
+-
+-        afterEach(function () {
+-            Object.defineProperty(window, "navigator", origNavigator);
+-        });
+-
+-        it('should provide caps lock state', function () {
+-            const kbd = new Keyboard(document);
+-            kbd.onkeyevent = sinon.spy();
+-            kbd._handleKeyDown(keyevent('keydown', {code: 'KeyA', key: 'A', NumLock: false, CapsLock: true}));
+-
+-            expect(kbd.onkeyevent).to.have.been.calledOnce;
+-            expect(kbd.onkeyevent.firstCall).to.have.been.calledWith(0x41, "KeyA", true, false, true);
+-        });
+-
+-        it('should provide num lock state', function () {
+-            const kbd = new Keyboard(document);
+-            kbd.onkeyevent = sinon.spy();
+-            kbd._handleKeyDown(keyevent('keydown', {code: 'KeyA', key: 'A', NumLock: true, CapsLock: false}));
+-
+-            expect(kbd.onkeyevent).to.have.been.calledOnce;
+-            expect(kbd.onkeyevent.firstCall).to.have.been.calledWith(0x41, "KeyA", true, true, false);
+-        });
+-
+-        it('should have no num lock state on mac', function () {
+-            window.navigator.platform = "Mac";
+-            const kbd = new Keyboard(document);
+-            kbd.onkeyevent = sinon.spy();
+-            kbd._handleKeyDown(keyevent('keydown', {code: 'KeyA', key: 'A', NumLock: false, CapsLock: true}));
+-
+-            expect(kbd.onkeyevent).to.have.been.calledOnce;
+-            expect(kbd.onkeyevent.firstCall).to.have.been.calledWith(0x41, "KeyA", true, null, true);
+-        });
+-    });
+-
+     describe('Japanese IM keys on Windows', function () {
+         let origNavigator;
+         beforeEach(function () {
+diff --git a/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.rfb.js b/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.rfb.js
+index 62b80ca..5e78767 100644
+--- a/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.rfb.js
++++ b/jupyter_remote_desktop_proxy/share/web/noVNC/tests/test.rfb.js
+@@ -3007,149 +3007,6 @@ describe('Remote Frame Buffer Protocol Client', function () {
+                     expect(spy.args[0][0].detail.name).to.equal('som€ nam€');
+                 });
+             });
+-
+-            describe('Caps Lock and Num Lock remote fixup', function () {
+-                function sendLedStateUpdate(state) {
+-                    let data = [];
+-                    push8(data, state);
+-                    sendFbuMsg([{ x: 0, y: 0, width: 0, height: 0, encoding: -261 }], [data], client);
+-                }
+-
+-                let client;
+-                beforeEach(function () {
+-                    client = makeRFB();
+-                    sinon.stub(client, 'sendKey');
+-                });
+-
+-                it('should toggle caps lock if remote caps lock is on and local is off', function () {
+-                    sendLedStateUpdate(0b100);
+-                    client._handleKeyEvent(0x61, 'KeyA', true, null, false);
+-
+-                    expect(client.sendKey).to.have.been.calledThrice;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFE5, "CapsLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFFE5, "CapsLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0x61, "KeyA", true);
+-                });
+-
+-                it('should toggle caps lock if remote caps lock is off and local is on', function () {
+-                    sendLedStateUpdate(0b011);
+-                    client._handleKeyEvent(0x41, 'KeyA', true, null, true);
+-
+-                    expect(client.sendKey).to.have.been.calledThrice;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFE5, "CapsLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFFE5, "CapsLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0x41, "KeyA", true);
+-                });
+-
+-                it('should not toggle caps lock if remote caps lock is on and local is on', function () {
+-                    sendLedStateUpdate(0b100);
+-                    client._handleKeyEvent(0x41, 'KeyA', true, null, true);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0x41, "KeyA", true);
+-                });
+-
+-                it('should not toggle caps lock if remote caps lock is off and local is off', function () {
+-                    sendLedStateUpdate(0b011);
+-                    client._handleKeyEvent(0x61, 'KeyA', true, null, false);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0x61, "KeyA", true);
+-                });
+-
+-                it('should not toggle caps lock if the key is caps lock', function () {
+-                    sendLedStateUpdate(0b011);
+-                    client._handleKeyEvent(0xFFE5, 'CapsLock', true, null, true);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFE5, "CapsLock", true);
+-                });
+-
+-                it('should toggle caps lock only once', function () {
+-                    sendLedStateUpdate(0b100);
+-                    client._handleKeyEvent(0x61, 'KeyA', true, null, false);
+-                    client._handleKeyEvent(0x61, 'KeyA', true, null, false);
+-
+-                    expect(client.sendKey).to.have.callCount(4);
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFE5, "CapsLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFFE5, "CapsLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0x61, "KeyA", true);
+-                    expect(client.sendKey.lastCall).to.have.been.calledWith(0x61, "KeyA", true);
+-                });
+-
+-                it('should retain remote caps lock state on capslock key up', function () {
+-                    sendLedStateUpdate(0b100);
+-                    client._handleKeyEvent(0xFFE5, 'CapsLock', false, null, true);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFE5, "CapsLock", false);
+-                    expect(client._remoteCapsLock).to.equal(true);
+-                });
+-
+-                it('should toggle num lock if remote num lock is on and local is off', function () {
+-                    sendLedStateUpdate(0b010);
+-                    client._handleKeyEvent(0xFF9C, 'NumPad1', true, false, null);
+-
+-                    expect(client.sendKey).to.have.been.calledThrice;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFF7F, "NumLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFF7F, "NumLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0xFF9C, "NumPad1", true);
+-                });
+-
+-                it('should toggle num lock if remote num lock is off and local is on', function () {
+-                    sendLedStateUpdate(0b101);
+-                    client._handleKeyEvent(0xFFB1, 'NumPad1', true, true, null);
+-
+-                    expect(client.sendKey).to.have.been.calledThrice;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFF7F, "NumLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFF7F, "NumLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0xFFB1, "NumPad1", true);
+-                });
+-
+-                it('should not toggle num lock if remote num lock is on and local is on', function () {
+-                    sendLedStateUpdate(0b010);
+-                    client._handleKeyEvent(0xFFB1, 'NumPad1', true,  true, null);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFB1, "NumPad1", true);
+-                });
+-
+-                it('should not toggle num lock if remote num lock is off and local is off', function () {
+-                    sendLedStateUpdate(0b101);
+-                    client._handleKeyEvent(0xFF9C, 'NumPad1', true, false, null);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFF9C, "NumPad1", true);
+-                });
+-
+-                it('should not toggle num lock if the key is num lock', function () {
+-                    sendLedStateUpdate(0b101);
+-                    client._handleKeyEvent(0xFF7F, 'NumLock', true, true, null);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFF7F, "NumLock", true);
+-                });
+-
+-                it('should not toggle num lock if local state is unknown', function () {
+-                    sendLedStateUpdate(0b010);
+-                    client._handleKeyEvent(0xFFB1, 'NumPad1', true, null, null);
+-
+-                    expect(client.sendKey).to.have.been.calledOnce;
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFFB1, "NumPad1", true);
+-                });
+-
+-                it('should toggle num lock only once', function () {
+-                    sendLedStateUpdate(0b010);
+-                    client._handleKeyEvent(0xFF9C, 'NumPad1', true, false, null);
+-                    client._handleKeyEvent(0xFF9C, 'NumPad1', true, false, null);
+-
+-                    expect(client.sendKey).to.have.callCount(4);
+-                    expect(client.sendKey.firstCall).to.have.been.calledWith(0xFF7F, "NumLock", true);
+-                    expect(client.sendKey.secondCall).to.have.been.calledWith(0xFF7F, "NumLock", false);
+-                    expect(client.sendKey.thirdCall).to.have.been.calledWith(0xFF9C, "NumPad1", true);
+-                    expect(client.sendKey.lastCall).to.have.been.calledWith(0xFF9C, "NumPad1", true);
+-                });
+-            });
+         });
+ 
+         describe('XVP Message Handling', function () {
