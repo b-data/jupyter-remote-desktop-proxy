@@ -76,8 +76,12 @@ export default class TightDecoder {
             return false;
         }
 
-        let pixel = sock.rQshiftBytes(3);
-        display.fillRect(x, y, width, height, pixel, false);
+        const rQi = sock.rQi;
+        const rQ = sock.rQ;
+
+        display.fillRect(x, y, width, height,
+                         [rQ[rQi], rQ[rQi + 1], rQ[rQi + 2]], false);
+        sock.rQskipBytes(3);
 
         return true;
     }
@@ -285,73 +289,7 @@ export default class TightDecoder {
     }
 
     _gradientFilter(streamId, x, y, width, height, sock, display, depth) {
-        // assume the TPIXEL is 3 bytes long
-        const uncompressedSize = width * height * 3;
-        let data;
-
-        if (uncompressedSize === 0) {
-            return true;
-        }
-
-        if (uncompressedSize < 12) {
-            if (sock.rQwait("TIGHT", uncompressedSize)) {
-                return false;
-            }
-
-            data = sock.rQshiftBytes(uncompressedSize);
-        } else {
-            data = this._readData(sock);
-            if (data === null) {
-                return false;
-            }
-
-            this._zlibs[streamId].setInput(data);
-            data = this._zlibs[streamId].inflate(uncompressedSize);
-            this._zlibs[streamId].setInput(null);
-        }
-
-        let rgbx = new Uint8Array(4 * width * height);
-
-        let rgbxIndex = 0, dataIndex = 0;
-        let left = new Uint8Array(3);
-        for (let x = 0; x < width; x++) {
-            for (let c = 0; c < 3; c++) {
-                const prediction = left[c];
-                const value = data[dataIndex++] + prediction;
-                rgbx[rgbxIndex++] = value;
-                left[c] = value;
-            }
-            rgbx[rgbxIndex++] = 255;
-        }
-
-        let upperIndex = 0;
-        let upper = new Uint8Array(3),
-            upperleft = new Uint8Array(3);
-        for (let y = 1; y < height; y++) {
-            left.fill(0);
-            upperleft.fill(0);
-            for (let x = 0; x < width; x++) {
-                for (let c = 0; c < 3; c++) {
-                    upper[c] = rgbx[upperIndex++];
-                    let prediction = left[c] + upper[c] - upperleft[c];
-                    if (prediction < 0) {
-                        prediction = 0;
-                    } else if (prediction > 255) {
-                        prediction = 255;
-                    }
-                    const value = data[dataIndex++] + prediction;
-                    rgbx[rgbxIndex++] = value;
-                    upperleft[c] = upper[c];
-                    left[c] = value;
-                }
-                rgbx[rgbxIndex++] = 255;
-                upperIndex++;
-            }
-        }
-
-        display.blitImage(x, y, width, height, rgbx, 0, false);
-
-        return true;
+        throw new Error("Gradient filter not implemented");
     }
 
     _readData(sock) {
@@ -378,7 +316,7 @@ export default class TightDecoder {
             return null;
         }
 
-        let data = sock.rQshiftBytes(this._len, false);
+        let data = sock.rQshiftBytes(this._len);
         this._len = 0;
 
         return data;

@@ -131,10 +131,12 @@ export default class RecordingPlayer {
     _doPacket() {
         // Avoid having excessive queue buildup in non-realtime mode
         if (this._trafficManagement && this._rfb._flushing) {
-            this._rfb.flush()
-                .then(() => {
-                    this._doPacket();
-                });
+            const orig = this._rfb._display.onflush;
+            this._rfb._display.onflush = () => {
+                this._rfb._display.onflush = orig;
+                this._rfb._onFlush();
+                this._doPacket();
+            };
             return;
         }
 
@@ -148,8 +150,13 @@ export default class RecordingPlayer {
 
     _finish() {
         if (this._rfb._display.pending()) {
-            this._rfb._display.flush()
-                .then(() => { this._finish(); });
+            this._rfb._display.onflush = () => {
+                if (this._rfb._flushing) {
+                    this._rfb._onFlush();
+                }
+                this._finish();
+            };
+            this._rfb._display.flush();
         } else {
             this._running = false;
             this._ws.onclose({code: 1000, reason: ""});
