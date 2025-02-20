@@ -8,7 +8,13 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 def setup_desktop():
     vncserver = which('vncserver')
 
-    vnc_args = [vncserver]
+    with open(vncserver) as vncserver_file:
+        is_turbovnc = "turbovnc" in vncserver_file.read().casefold()
+
+    if is_turbovnc:
+        vnc_args = [vncserver, '-noserverkeymap']
+    else:
+        vnc_args = [vncserver]
 
     if not os.path.exists(os.path.expanduser('~/.vnc/xstartup')):
         vnc_args.extend(['-xstartup', os.path.join(HERE, 'share/xstartup')])
