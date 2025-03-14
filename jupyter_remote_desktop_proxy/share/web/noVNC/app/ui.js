@@ -4,6 +4,9 @@
  * Licensed under MPL 2.0 (see LICENSE.txt)
  *
  * See README.md for usage and integration instructions.
+ *
+ * Modified by b-data for seamless use with Jupyter Remote Desktop Proxy.
+ *
  */
 
 import * as Log from '../core/util/logging.js';
@@ -133,7 +136,7 @@ const UI = {
 
         document.documentElement.classList.remove("noVNC_loading");
 
-        let autoconnect = UI.getSetting('autoconnect');
+        let autoconnect = UI.getSetting('autoconnect', true);
         if (autoconnect === 'true' || autoconnect == '1') {
             autoconnect = true;
             UI.connect();
@@ -178,16 +181,16 @@ const UI = {
         UI.initSetting('password');
         UI.initSetting('autoconnect', false);
         UI.initSetting('view_clip', false);
-        UI.initSetting('resize', 'off');
+        UI.initSetting('resize', 'scale');
         UI.initSetting('quality', 6);
         UI.initSetting('compression', 2);
         UI.initSetting('shared', true);
         UI.initSetting('bell', 'on');
         UI.initSetting('view_only', false);
         UI.initSetting('show_dot', false);
-        UI.initSetting('path', 'websockify');
+        UI.initSetting('path', window.location.pathname.replace(/[^/]*$/, '').substring(1) + 'websockify');
         UI.initSetting('repeaterID', '');
-        UI.initSetting('reconnect', false);
+        UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
     },
     // Adds a link to the label elements on the corresponding input elements
