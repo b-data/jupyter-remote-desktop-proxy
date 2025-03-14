@@ -3,6 +3,9 @@
  * Copyright (C) 2019 The noVNC authors
  * noVNC is licensed under the MPL 2.0 (see LICENSE.txt)
  * This file is licensed under the 2-Clause BSD license (see LICENSE.txt).
+ *
+ * Modified by b-data for seamless use with Jupyter Remote Desktop Proxy.
+ *
  */
 
 /*
@@ -480,8 +483,6 @@ html {
 .noVNC_panel textarea,
 .noVNC_panel input:not([type=checkbox]):not([type=radio]) {
     margin-left: 6px;
-    /* Prevent inputs in panels from being too wide */
-    max-width: calc(100% - 6px - var(--input-xpadding) * 2);
 }
 
 .noVNC_panel .noVNC_heading {
@@ -639,7 +640,7 @@ html {
 }
 
 /* Connection controls */
-:root:not(.noVNC_connected) #noVNC_disconnect_button {
+:root #noVNC_disconnect_button {
     display: none;
 }
 
