@@ -12,9 +12,9 @@ def setup_desktop():
         is_turbovnc = "turbovnc" in vncserver_file.read().casefold()
 
     if is_turbovnc:
-        vnc_args = [vncserver, '-noserverkeymap']
+        vnc_args = [vncserver, '-noserverkeymap', '-localhost', '-rfbport', '{port}']
     else:
-        vnc_args = [vncserver]
+        vnc_args = [vncserver, '-rfbport', '{port}']
 
     if not os.path.exists(os.path.expanduser('~/.vnc/xstartup')):
         vnc_args.extend(['-xstartup', os.path.join(HERE, 'share/xstartup')])
@@ -27,7 +27,6 @@ def setup_desktop():
             '-SecurityTypes',
             'None',
             '-fg',
-            ':1',
         ]
     )
 
@@ -38,10 +37,9 @@ def setup_desktop():
             os.path.join(HERE, 'share/web/noVNC'),
             '--heartbeat',
             '30',
-            'localhost:5901',
+            'localhost:{port}',
         ]
         + ['--', '/bin/sh', '-c', f'cd {os.getcwd()} && {vnc_command}'],
-        'port': 5901,
         'timeout': 30,
         'mappath': {'/': '/vnc.html'},
         'new_browser_window': True,

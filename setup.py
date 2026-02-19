@@ -25,7 +25,7 @@ setup(
         ]
     },
     install_requires=[
-        'jupyter-server-proxy>=1.4.0',
+        'jupyter-server-proxy>=4.1.1',
     ],
     include_package_data=True,
     keywords=["Interactive", "Desktop", "Jupyter"],
@@ -37,7 +37,7 @@ setup(
         "Source": "https://github.com/jupyterhub/jupyter-remote-desktop-proxy/",
         "Tracker": "https://github.com/jupyterhub/jupyter-remote-desktop-proxy/issues",
     },
-    python_requires=">=3.6",
+    python_requires=">=3.8",
     url="https://jupyter.org",
     zip_safe=False,
 )
